@@ -1,0 +1,29 @@
+services:
+  # rabbitmq:
+  #   image: rabbitmq:3.13-management-alpine
+  #   container_name: 'rabbitmq'
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   tmpfs:
+  #     - /var/lib/rabbitmq/
+  #     - /var/log/rabbitmq 
+  # cassandra:
+  #   image: cassandra:latest
+  #   container_name: cassandradb
+  #   ports:
+  #     - 9042:9042
+  #   environment:
+  #     - CASSANDRA_USER=admin
+  #     - CASSANDRA_PASSWORD=password
+  #   tmpfs:
+  #     - /var/lib/cassandra/
+  postgres:
+    image: postgres:alpine
+    ports:
+      - 5432:5432
+    tmpfs: /var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: auth
