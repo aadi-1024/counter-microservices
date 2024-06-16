@@ -4,7 +4,6 @@ import (
 	"auth/database"
 	"authproto"
 	"context"
-
 	// "google.golang.org/grpc"
 )
 
@@ -16,7 +15,7 @@ type AuthServer struct {
 func (a AuthServer) Login(ctx context.Context, in *authproto.LoginRequest) (*authproto.Response, error) {
 	resp := &authproto.Response{}
 
-	if err := a.Db.Login(in.Email, in.Password); err != nil {
+	if _, err := a.Db.Login(in.Email, in.Password); err != nil {
 		resp.Success = false
 		return resp, err
 	}

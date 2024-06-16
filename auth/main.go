@@ -6,6 +6,7 @@ import (
 	"authproto"
 	"log"
 	"net"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -17,7 +18,7 @@ func main() {
 	}
 	srv := grpc.NewServer()	
 
-	db, err := database.New()
+	db, err := database.New(5 * time.Second)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
@@ -25,7 +26,7 @@ func main() {
 	authServ := server.AuthServer{}
 	authServ.Db = db
 
-	authproto.RegisterAuthRPCServer(srv, server.AuthServer{})
+	authproto.RegisterAuthRPCServer(srv, authServ)
 
 	if err := srv.Serve(lis); err != nil {
 		log.Fatalln(err.Error())

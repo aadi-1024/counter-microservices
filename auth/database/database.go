@@ -1,57 +1,87 @@
 package database
 
 import (
+	"context"
 	"log"
 	"time"
 
-	"github.com/gocql/gocql"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// schema for cassandra instance
-// Keyspace: auth
-// Table users:
-// - Username Text
-// - Email Text PRIMARY KEY
-// - Password Text
-
 type Database struct {
-	Session *gocql.Session
+	timeout time.Duration
+	Pool *pgxpool.Pool
 }
 
-func New() (*Database, error) {
-	cluster := gocql.NewCluster("localhost:9042")
-	cluster.Keyspace = "auth"
-
-	var session *gocql.Session
-	var err error
+func New(timeout time.Duration) (*Database, error) {
+	pool, err := pgxpool.New(context.Background(), "postgres://postgres:password@localhost:5432/auth")
+	if err != nil {
+		return nil, err
+	}
 	for i := 0; i < 5; i++ {
-		session, err = cluster.CreateSession()
+		err = pool.Ping(context.Background())
 		if err != nil {
-			log.Println(err.Error())
-			time.Sleep(5 * time.Second)
+			log.Println("ping failed, trying again")
+			time.Sleep(timeout)
 		}
 	}
-
+	if err != nil {
+		return nil, err
+	}
 	d := &Database{}
-	d.Session = session
-
-	return d, err
+	d.timeout = timeout
+	d.Pool = pool
+	return d, nil
 }
 
-func (d *Database) Login(email, password string) error {
-	var passHash string
-	if err := d.Session.Query(`select password from users where email = $1;`, email).Scan(&passHash); err != nil {
-		return err
+func (d *Database) Ctx(ctx context.Context) (context.Context, context.CancelFunc) {
+	if ctx != nil {
+		return context.WithTimeout(ctx, d.timeout)
+	} else {
+		return context.WithTimeout(context.Background(), d.timeout)
+	}
+}
+
+func (d *Database) Login(email, password string) (int, error) {
+	query := `select id, password from users where email = $1;`
+
+	ctx, cancel := d.Ctx(context.Background())
+	defer cancel()
+
+	row := d.Pool.QueryRow(ctx, query, email)
+
+	var id int
+	var pass string
+	if err := row.Scan(&id, &pass); err != nil {
+		return 0, err
 	}
 
-	return bcrypt.CompareHashAndPassword([]byte(passHash), []byte(password))
+	return id, bcrypt.CompareHashAndPassword([]byte(pass), []byte(password))
 }
 
 func (d *Database) Register(email, username, password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), -1)
+	query := `insert into users (email, username, password) values ($1, $2, $3);`
+
+	passHash, err := bcrypt.GenerateFromPassword([]byte(password), -1)
 	if err != nil {
 		return err
 	}
-	return d.Session.Query(`insert into users (username, email, password) values ($1, $2, $3)`, username, email, hash).Exec()
+
+	ctx, cancel := d.Ctx(context.Background())
+	defer cancel()
+
+	tx, err := d.Pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	_, err = tx.Exec(ctx, query, email, username, passHash)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
