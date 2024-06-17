@@ -8,5 +8,5 @@ import (
 
 func SetupRouter(e *echo.Echo) {
 	e.POST("/login", handlers.LoginHandler(app.Auth))
-	// e.POST("/register", nil)
+	e.POST("/register", handlers.RegisterHandler(app.Auth))
 }

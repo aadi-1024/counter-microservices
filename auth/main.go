@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	lis, err := net.Listen("tcp", "127.0.0.1:8081")
+	lis, err := net.Listen("tcp", "0.0.0.0:8081")
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
@@ -22,12 +22,12 @@ func main() {
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-
+	log.Println("auth: connected to database")
 	authServ := server.AuthServer{}
 	authServ.Db = db
 
 	authproto.RegisterAuthRPCServer(srv, authServ)
-
+	log.Println("auth: starting service")
 	if err := srv.Serve(lis); err != nil {
 		log.Fatalln(err.Error())
 	}

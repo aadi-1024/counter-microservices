@@ -12,11 +12,11 @@ import (
 
 type Database struct {
 	timeout time.Duration
-	Pool *pgxpool.Pool
+	Pool    *pgxpool.Pool
 }
 
 func New(timeout time.Duration) (*Database, error) {
-	pool, err := pgxpool.New(context.Background(), "postgres://postgres:password@localhost:5432/auth")
+	pool, err := pgxpool.New(context.Background(), "postgres://postgres:password@postgres:5432/auth")
 	if err != nil {
 		return nil, err
 	}

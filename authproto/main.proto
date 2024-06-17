@@ -22,4 +22,5 @@ message RegisterRequest {
 message Response {
   bool Success = 1;
   string Message = 2;
+  string Token = 3;
 }

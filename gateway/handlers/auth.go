@@ -34,3 +34,23 @@ func LoginHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, jsonResp)
 	}
 }
+
+func RegisterHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		registerReq := authproto.RegisterRequest{}
+		registerReq.Email = c.FormValue("email")
+		registerReq.Username = c.FormValue("username")
+		registerReq.Password = c.FormValue("password")
+
+		resp, err := client.Register(c.Request().Context(), &registerReq)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		jsonResp := &jsonResponse{}
+		jsonResp.Message = "successful"
+		jsonResp.Token = resp.Token
+
+		return c.JSON(http.StatusOK, jsonResp)
+	}
+}
