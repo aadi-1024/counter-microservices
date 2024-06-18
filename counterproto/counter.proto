@@ -6,6 +6,7 @@ package counterproto;
 service CounterRPC {
   rpc GetValue(Request) returns (Response) {}
   rpc Update(Request) returns (Response) {}
+  rpc CreateNew(Request) returns (Response) {}
 }
 
 enum Action {

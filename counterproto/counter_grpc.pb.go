@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	CounterRPC_GetValue_FullMethodName = "/counterproto.CounterRPC/GetValue"
-	CounterRPC_Update_FullMethodName   = "/counterproto.CounterRPC/Update"
+	CounterRPC_GetValue_FullMethodName  = "/counterproto.CounterRPC/GetValue"
+	CounterRPC_Update_FullMethodName    = "/counterproto.CounterRPC/Update"
+	CounterRPC_CreateNew_FullMethodName = "/counterproto.CounterRPC/CreateNew"
 )
 
 // CounterRPCClient is the client API for CounterRPC service.
@@ -29,6 +30,7 @@ const (
 type CounterRPCClient interface {
 	GetValue(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
 	Update(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
+	CreateNew(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
 }
 
 type counterRPCClient struct {
@@ -59,12 +61,23 @@ func (c *counterRPCClient) Update(ctx context.Context, in *Request, opts ...grpc
 	return out, nil
 }
 
+func (c *counterRPCClient) CreateNew(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, CounterRPC_CreateNew_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CounterRPCServer is the server API for CounterRPC service.
 // All implementations must embed UnimplementedCounterRPCServer
 // for forward compatibility
 type CounterRPCServer interface {
 	GetValue(context.Context, *Request) (*Response, error)
 	Update(context.Context, *Request) (*Response, error)
+	CreateNew(context.Context, *Request) (*Response, error)
 	mustEmbedUnimplementedCounterRPCServer()
 }
 
@@ -77,6 +90,9 @@ func (UnimplementedCounterRPCServer) GetValue(context.Context, *Request) (*Respo
 }
 func (UnimplementedCounterRPCServer) Update(context.Context, *Request) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedCounterRPCServer) CreateNew(context.Context, *Request) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateNew not implemented")
 }
 func (UnimplementedCounterRPCServer) mustEmbedUnimplementedCounterRPCServer() {}
 
@@ -127,6 +143,24 @@ func _CounterRPC_Update_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CounterRPC_CreateNew_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CounterRPCServer).CreateNew(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CounterRPC_CreateNew_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CounterRPCServer).CreateNew(ctx, req.(*Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CounterRPC_ServiceDesc is the grpc.ServiceDesc for CounterRPC service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -141,6 +175,10 @@ var CounterRPC_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Update",
 			Handler:    _CounterRPC_Update_Handler,
+		},
+		{
+			MethodName: "CreateNew",
+			Handler:    _CounterRPC_CreateNew_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

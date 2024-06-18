@@ -16,7 +16,7 @@ type AuthServer struct {
 }
 
 type claims struct {
-	Uid int
+	Uid    int
 	Expiry time.Time
 	jwt.RegisteredClaims
 }
@@ -26,14 +26,13 @@ func (a AuthServer) Login(ctx context.Context, in *authproto.LoginRequest) (*aut
 
 	id, err := a.Db.Login(in.Email, in.Password)
 	if err != nil {
-		resp.Success = false
 		resp.Message = err.Error()
 		return resp, err
 	}
 
 	clms := &claims{
-		Uid: id,
-		Expiry: time.Now().Add(24*time.Hour),
+		Uid:    id,
+		Expiry: time.Now().Add(24 * time.Hour),
 	}
 
 	token := jwt.New(jwt.SigningMethodHS512)
@@ -41,12 +40,10 @@ func (a AuthServer) Login(ctx context.Context, in *authproto.LoginRequest) (*aut
 	ss, err := token.SignedString([]byte("HUGE_SECRET"))
 
 	if err != nil {
-		resp.Success = false
 		resp.Message = err.Error()
 		return resp, err
 	}
 
-	resp.Success = true
 	resp.Message = ss
 	return resp, nil
 }
@@ -54,12 +51,16 @@ func (a AuthServer) Login(ctx context.Context, in *authproto.LoginRequest) (*aut
 func (a AuthServer) Register(ctx context.Context, in *authproto.RegisterRequest) (*authproto.Response, error) {
 	resp := &authproto.Response{}
 
-	if err := a.Db.Register(in.Email, in.Username, in.Password); err != nil {
-		resp.Success = false;
-		return resp, err
+	// if err := a.Db.Register(in.Email, in.Username, in.Password); err != nil {
+	// return resp, err
+	// }
+	id, err := a.Db.Register(in.Email, in.Username, in.Password)
+
+	if err != nil {
+		return resp, nil
 	}
 
-	resp.Success = true
+	resp.Userid = int32(id)
 	resp.Message = "successful"
 	return resp, nil
 }

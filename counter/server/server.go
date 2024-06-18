@@ -37,3 +37,15 @@ func (c CounterRPCServer) Update(ctx context.Context, req *cp.Request) (*cp.Resp
 	}
 	return resp, err
 }
+
+func (c CounterRPCServer) CreateNew(ctx context.Context, req *cp.Request) (*cp.Response, error) {
+	resp := &cp.Response{}
+
+	err := c.Database.CreateUser(int(req.UserId), int(req.Value))
+	if err != nil {
+		resp.Message = err.Error()
+	}
+
+	resp.Message = "successful"
+	return resp, err
+}

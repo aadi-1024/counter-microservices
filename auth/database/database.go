@@ -61,12 +61,12 @@ func (d *Database) Login(email, password string) (int, error) {
 	return id, bcrypt.CompareHashAndPassword([]byte(pass), []byte(password))
 }
 
-func (d *Database) Register(email, username, password string) error {
-	query := `insert into users (email, username, password) values ($1, $2, $3);`
+func (d *Database) Register(email, username, password string) (int, error) {
+	query := `insert into users (email, username, password) values ($1, $2, $3) returning id;`
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), -1)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	ctx, cancel := d.Ctx(context.Background())
@@ -74,14 +74,18 @@ func (d *Database) Register(email, username, password string) error {
 
 	tx, err := d.Pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer tx.Rollback(ctx)
 
-	_, err = tx.Exec(ctx, query, email, username, passHash)
-	if err != nil {
-		return err
+	// _, err = tx.Exec(ctx, query, email, username, passHash)
+	// if err != nil {
+	// 	return err
+	// }
+	var id int
+	if err := tx.QueryRow(ctx, query, email, username, passHash).Scan(&id); err != nil {
+		return id, err
 	}
 
-	return tx.Commit(ctx)
+	return id, tx.Commit(ctx)
 }

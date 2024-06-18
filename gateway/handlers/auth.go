@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"authproto"
+	"context"
+	"counterproto"
 	"gateway/models"
 	"net/http"
 
@@ -22,16 +24,12 @@ func LoginHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
 		jsonResp := &models.JsonResponse{}
 		jsonResp.Message = resp.Message
 
-		if !resp.Success {
-			return c.JSON(http.StatusBadRequest, jsonResp)
-		}
-
 		jsonResp.Token = resp.Token
 		return c.JSON(http.StatusOK, jsonResp)
 	}
 }
 
-func RegisterHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
+func RegisterHandler(client authproto.AuthRPCClient, cclient counterproto.CounterRPCClient) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		registerReq := authproto.RegisterRequest{}
 		registerReq.Email = c.FormValue("email")
@@ -43,7 +41,16 @@ func RegisterHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
+		_, err = cclient.CreateNew(context.Background(), &counterproto.Request{
+			UserId: resp.Userid,
+			Value:  0,
+		})
+
 		jsonResp := &models.JsonResponse{}
+		if err != nil {
+			jsonResp.Message = err.Error()
+			return c.JSON(http.StatusBadRequest, jsonResp)
+		}
 		jsonResp.Message = "successful"
 		jsonResp.Token = resp.Token
 
