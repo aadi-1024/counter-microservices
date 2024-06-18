@@ -2,15 +2,11 @@ package handlers
 
 import (
 	"authproto"
+	"gateway/models"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
-
-type jsonResponse struct {
-	Message string `json:"message"`
-	Token   string `json:"token"`
-}
 
 func LoginHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -23,7 +19,7 @@ func LoginHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		jsonResp := &jsonResponse{}
+		jsonResp := &models.JsonResponse{}
 		jsonResp.Message = resp.Message
 
 		if !resp.Success {
@@ -47,7 +43,7 @@ func RegisterHandler(client authproto.AuthRPCClient) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		jsonResp := &jsonResponse{}
+		jsonResp := &models.JsonResponse{}
 		jsonResp.Message = "successful"
 		jsonResp.Token = resp.Token
 

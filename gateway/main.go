@@ -2,6 +2,7 @@ package main
 
 import (
 	"authproto"
+	"counterproto"
 	"log"
 	"time"
 
@@ -16,17 +17,22 @@ func main() {
 	e := echo.New()
 	app = &App{}
 
-	time.Sleep(10 * time.Second)
-	client, err := grpc.NewClient("auth:8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	time.Sleep(5 * time.Second)
+	authClient, err := grpc.NewClient("auth:8081", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	if client == nil {
-		log.Fatalln("fucky wucky")
+
+	auth := authproto.NewAuthRPCClient(authClient)
+	app.Auth = auth
+
+	counterClient, err := grpc.NewClient("counter:8082", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalln(err.Error())
 	}
 
-	authClient := authproto.NewAuthRPCClient(client)
-	app.Auth = authClient
+	counter := counterproto.NewCounterRPCClient(counterClient)
+	app.Counter = counter
 
 	SetupRouter(e)
 	if err := e.Start("0.0.0.0:8080"); err != nil {

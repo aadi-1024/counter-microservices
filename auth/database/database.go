@@ -16,7 +16,7 @@ type Database struct {
 }
 
 func New(timeout time.Duration) (*Database, error) {
-	pool, err := pgxpool.New(context.Background(), "postgres://postgres:password@postgres:5432/auth")
+	pool, err := pgxpool.New(context.Background(), "postgres://postgres:password@authdb:5432/auth")
 	if err != nil {
 		return nil, err
 	}

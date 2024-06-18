@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option go_package = "./counterproto";
+package counterproto;
+
+service CounterRPC {
+  rpc GetValue(Request) returns (Response) {}
+  rpc Update(Request) returns (Response) {}
+}
+
+enum Action {
+  Increment = 0;
+  Decrement = 1;
+  SetValue = 2;
+}
+
+message Request {
+  int32 UserId = 1;
+  Action Task = 2;
+  int32 Value = 3;
+}
+
+message Response {
+  int32 Value = 1;
+  string Message = 2;
+}
