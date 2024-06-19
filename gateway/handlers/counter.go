@@ -3,6 +3,7 @@ package handlers
 import (
 	"counterproto"
 	"gateway/models"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -53,6 +54,7 @@ func GetValue(client counterproto.CounterRPCClient) echo.HandlerFunc {
 				Message: err.Error(),
 			})
 		}
+		log.Println(resp)
 		return c.JSON(http.StatusOK, models.JsonResponse{
 			Message: resp.Message,
 			Value: int(resp.Value),

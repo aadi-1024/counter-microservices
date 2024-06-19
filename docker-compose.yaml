@@ -65,3 +65,9 @@ services:
     depends_on:
       - counterdb
     restart: always
+
+  memcached:
+    image: memcached:alpine
+    ports:
+        - "11211:11211"
+    

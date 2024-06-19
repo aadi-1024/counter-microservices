@@ -12,6 +12,7 @@ func SetupRouter(e *echo.Echo) {
 	e.POST("/register", handlers.RegisterHandler(app.Auth, app.Counter))
 
 	grp := e.Group("/user", JWTMiddleware([]byte("HUGE_SECRET")))
+	grp.GET("/get", handlers.GetValue(app.Counter))
 	grp.POST("/set", handlers.UpdateValue(app.Counter, counterproto.Action_SetValue))
 	grp.POST("/increment", handlers.UpdateValue(app.Counter, counterproto.Action_Increment))
 	grp.POST("/decrement", handlers.UpdateValue(app.Counter, counterproto.Action_Decrement))
