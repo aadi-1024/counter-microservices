@@ -7,17 +7,30 @@ services:
       - 15672:15672 #ui
     tmpfs:
       - /var/lib/rabbitmq/
-      - /var/log/rabbitmq 
-  # cassandra:
-  #   image: cassandra:latest
-  #   container_name: cassandradb
-  #   ports:
-  #     - 9042:9042
-  #   environment:
-  #     - CASSANDRA_USER=admin
-  #     - CASSANDRA_PASSWORD=password
-  #   tmpfs:
-  #     - /var/lib/cassandra/
+      - /var/log/rabbitmq
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.5.2
+    container_name: 'elastic'
+    ports:
+      - 9200:9200
+      - 9300:9300
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 2048M
+    environment:
+          ES_JAVA_OPTS: "-Xms750m -Xmx750m"
+          discovery.type: "single-node"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.5.2
+    container_name: 'kibana'
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
   authdb:
     image: postgres:alpine
     ports:

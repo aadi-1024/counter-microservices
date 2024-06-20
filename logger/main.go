@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"log"
 
+	"github.com/elastic/go-elasticsearch/v8"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -26,7 +28,15 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
+	client, err := elasticsearch.NewDefaultClient()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	client.Indices.Create("ind")
+
 	for m := range msg {
 		log.Println(string(m.Body))
+		client.Index("ind", bytes.NewReader(m.Body))
 	}
 }

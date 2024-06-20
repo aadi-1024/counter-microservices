@@ -6,7 +6,7 @@ import "github.com/labstack/echo/v4"
 func LoggerMiddleware(l *Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			msg := "Received " + c.Request().Method + "Request at " + c.Request().URL.RawPath
+			msg := "Received " + c.Request().Method + " Request at " + c.Request().URL.String()
 			l.Log(msg, Info)
 			return next(c)
 		}
