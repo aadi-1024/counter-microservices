@@ -104,6 +104,6 @@ func (d *Database) UpdateValue(uid, value int, action counterproto.Action) (int,
 		return val, err
 	}
 
-	err = d.cache.Set(uid, val)
+	_ = d.cache.Set(uid, val)
 	return val, tx.Commit(context.Background())
 }

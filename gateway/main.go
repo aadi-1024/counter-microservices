@@ -4,6 +4,7 @@ import (
 	"authproto"
 	"counterproto"
 	"log"
+	"loggerclient"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -33,6 +34,12 @@ func main() {
 
 	counter := counterproto.NewCounterRPCClient(counterClient)
 	app.Counter = counter
+
+	logger, err := loggerclient.NewLogger("gateway", "amqp://guest:guest@rabbitmq:5672")
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	app.Logger = logger
 
 	SetupRouter(e)
 	if err := e.Start("0.0.0.0:8080"); err != nil {

@@ -3,11 +3,14 @@ package main
 import (
 	"counterproto"
 	"gateway/handlers"
+	"loggerclient"
 
 	"github.com/labstack/echo/v4"
 )
 
 func SetupRouter(e *echo.Echo) {
+	e.Use(loggerclient.LoggerMiddleware(app.Logger))
+
 	e.POST("/login", handlers.LoginHandler(app.Auth))
 	e.POST("/register", handlers.RegisterHandler(app.Auth, app.Counter))
 
