@@ -3,8 +3,9 @@ package main
 import (
 	"bytes"
 	"log"
+	"logger/pool"
+	"sync"
 
-	"github.com/elastic/go-elasticsearch/v8"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -28,15 +29,38 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
-	client, err := elasticsearch.NewDefaultClient()
+	p, err := pool.New()
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
 
+	client := p.GetWorker()
 	client.Indices.Create("ind")
+	p.ReleaseWorker(client)
 
-	for m := range msg {
-		log.Println(string(m.Body))
-		client.Index("ind", bytes.NewReader(m.Body))
-	}
+	// cancel := make(chan bool)
+	forever := make(chan bool)
+
+	go func() {
+		wg := sync.WaitGroup{}
+		for {
+			m := <-msg
+			wg.Add(1)
+			go func() {
+				worker := p.GetWorker()
+				if worker == nil {
+					log.Println("worker is nil")
+				} else {
+					log.Println(string(m.Body))
+					_, err := worker.Index("ind", bytes.NewReader(m.Body))
+					defer p.ReleaseWorker(worker)
+					if err != nil {
+						log.Println(err.Error())
+					}
+				}
+				wg.Done()
+			}()
+		}
+	}()
+	<-forever
 }

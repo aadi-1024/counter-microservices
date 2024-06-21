@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"authproto"
-	"context"
 	"counterproto"
 	"gateway/models"
 	"net/http"
