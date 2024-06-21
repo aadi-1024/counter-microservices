@@ -24,7 +24,7 @@ type claims struct {
 func (a AuthServer) Login(ctx context.Context, in *authproto.LoginRequest) (*authproto.Response, error) {
 	resp := &authproto.Response{}
 
-	id, err := a.Db.Login(in.Email, in.Password)
+	id, err := a.Db.Login(ctx, in.Email, in.Password)
 	if err != nil {
 		resp.Message = err.Error()
 		return resp, err
@@ -54,7 +54,7 @@ func (a AuthServer) Register(ctx context.Context, in *authproto.RegisterRequest)
 	// if err := a.Db.Register(in.Email, in.Username, in.Password); err != nil {
 	// return resp, err
 	// }
-	id, err := a.Db.Register(in.Email, in.Username, in.Password)
+	id, err := a.Db.Register(ctx, in.Email, in.Username, in.Password)
 
 	if err != nil {
 		return resp, nil

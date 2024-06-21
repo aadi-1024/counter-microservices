@@ -14,7 +14,7 @@ type CounterRPCServer struct {
 func (c CounterRPCServer) GetValue(ctx context.Context, req *cp.Request) (*cp.Response, error) {
 	resp := &cp.Response{}
 
-	val, err := c.Database.GetValue(int(req.UserId))
+	val, err := c.Database.GetValue(ctx, int(req.UserId))
 	resp.Value = int32(val)
 	if err != nil {
 		resp.Message = err.Error()
@@ -28,7 +28,7 @@ func (c CounterRPCServer) GetValue(ctx context.Context, req *cp.Request) (*cp.Re
 func (c CounterRPCServer) Update(ctx context.Context, req *cp.Request) (*cp.Response, error) {
 	resp := &cp.Response{}
 
-	val, err := c.Database.UpdateValue(int(req.UserId), int(req.Value), req.Task)
+	val, err := c.Database.UpdateValue(ctx, int(req.UserId), int(req.Value), req.Task)
 	resp.Value = int32(val)
 	if err != nil {
 		resp.Message = err.Error()
@@ -41,7 +41,7 @@ func (c CounterRPCServer) Update(ctx context.Context, req *cp.Request) (*cp.Resp
 func (c CounterRPCServer) CreateNew(ctx context.Context, req *cp.Request) (*cp.Response, error) {
 	resp := &cp.Response{}
 
-	err := c.Database.CreateUser(int(req.UserId), int(req.Value))
+	err := c.Database.CreateUser(ctx, int(req.UserId), int(req.Value))
 	if err != nil {
 		resp.Message = err.Error()
 	}

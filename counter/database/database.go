@@ -46,22 +46,22 @@ func New(timeout time.Duration) (*Database, error) {
 	return d, nil
 }
 
-func (d *Database) CreateUser(uid, value int) error {
+func (d *Database) CreateUser(ctx context.Context, uid, value int) error {
 	query := `insert into data values ($1, $2);`
-	tx, err := d.pool.BeginTx(context.Background(), pgx.TxOptions{})
+	tx, err := d.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(context.Background())
+	defer tx.Rollback(ctx)
 
-	_, err = tx.Exec(context.Background(), query, uid, value)
+	_, err = tx.Exec(ctx, query, uid, value)
 	if err != nil {
 		return err
 	}
-	return tx.Commit(context.Background())
+	return tx.Commit(ctx)
 }
 
-func (d *Database) GetValue(uid int) (int, error) {
+func (d *Database) GetValue(ctx context.Context, uid int) (int, error) {
 	cacheVal, err := d.cache.Get(uid)
 	if err == nil {
 		return cacheVal, nil
@@ -69,7 +69,7 @@ func (d *Database) GetValue(uid int) (int, error) {
 
 	query := `select value from data where userid = $1;`
 
-	row := d.pool.QueryRow(context.Background(), query, uid)
+	row := d.pool.QueryRow(ctx, query, uid)
 	var val int
 
 	err = row.Scan(&val)
@@ -79,7 +79,7 @@ func (d *Database) GetValue(uid int) (int, error) {
 	return val, err
 }
 
-func (d *Database) UpdateValue(uid, value int, action counterproto.Action) (int, error) {
+func (d *Database) UpdateValue(ctx context.Context, uid, value int, action counterproto.Action) (int, error) {
 	var query string
 	switch action {
 	case counterproto.Action_Decrement:
@@ -90,14 +90,14 @@ func (d *Database) UpdateValue(uid, value int, action counterproto.Action) (int,
 		query = `update data set value = $1 where userid = $2 returning value;`
 	}
 
-	tx, err := d.pool.BeginTx(context.Background(), pgx.TxOptions{})
+	tx, err := d.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return 0, err
 	}
 
-	defer tx.Rollback(context.Background())
+	defer tx.Rollback(ctx)
 
-	row := tx.QueryRow(context.Background(), query, value, uid)
+	row := tx.QueryRow(ctx, query, value, uid)
 	var val int
 
 	if err := row.Scan(&val); err != nil {
@@ -105,5 +105,5 @@ func (d *Database) UpdateValue(uid, value int, action counterproto.Action) (int,
 	}
 
 	_ = d.cache.Set(uid, val)
-	return val, tx.Commit(context.Background())
+	return val, tx.Commit(ctx)
 }

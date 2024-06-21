@@ -41,7 +41,7 @@ func RegisterHandler(client authproto.AuthRPCClient, cclient counterproto.Counte
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		_, err = cclient.CreateNew(context.Background(), &counterproto.Request{
+		_, err = cclient.CreateNew(c.Request().Context(), &counterproto.Request{
 			UserId: resp.Userid,
 			Value:  0,
 		})

@@ -57,3 +57,15 @@ func (l *Logger) Log(message string, level LogLevel) error {
 	}
 	return nil
 }
+
+func (l *Logger) Info(message string) error {
+	return l.Log(message, Info)
+}
+
+func (l *Logger) Warning(message string) error {
+	return l.Log(message, Warning)
+}
+
+func (l *Logger) Error(message string) error {
+	return l.Log(message, Error)
+}

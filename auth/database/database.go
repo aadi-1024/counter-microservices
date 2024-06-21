@@ -36,19 +36,8 @@ func New(timeout time.Duration) (*Database, error) {
 	return d, nil
 }
 
-func (d *Database) Ctx(ctx context.Context) (context.Context, context.CancelFunc) {
-	if ctx != nil {
-		return context.WithTimeout(ctx, d.timeout)
-	} else {
-		return context.WithTimeout(context.Background(), d.timeout)
-	}
-}
-
-func (d *Database) Login(email, password string) (int, error) {
+func (d *Database) Login(ctx context.Context, email, password string) (int, error) {
 	query := `select id, password from users where email = $1;`
-
-	ctx, cancel := d.Ctx(context.Background())
-	defer cancel()
 
 	row := d.Pool.QueryRow(ctx, query, email)
 
@@ -61,16 +50,13 @@ func (d *Database) Login(email, password string) (int, error) {
 	return id, bcrypt.CompareHashAndPassword([]byte(pass), []byte(password))
 }
 
-func (d *Database) Register(email, username, password string) (int, error) {
+func (d *Database) Register(ctx context.Context, email, username, password string) (int, error) {
 	query := `insert into users (email, username, password) values ($1, $2, $3) returning id;`
 
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), -1)
 	if err != nil {
 		return 0, err
 	}
-
-	ctx, cancel := d.Ctx(context.Background())
-	defer cancel()
 
 	tx, err := d.Pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
